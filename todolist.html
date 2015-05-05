@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+	<title>toDoList</title>
+  <link rel="stylesheet" href="thirdparty/bootstrap.min.css" type="text/css" />
+  
+</head>
+<body>
+    <div class="row">
+        <div class="col-md-4"></div>
+        <div class="col-md-4">
+            <div id="todolist"></div>
+        </div>
+        <div class="col-md-4"></div>
+    </div>
+    
+    <script src="build/react.js"></script>
+    <script src="build/JSXTransformer.js"></script>
+    <script type="text/javascript" src="thirdparty/jquery.min.js" charset="utf-8"></script>
+    <script type="text/javascript" src="thirdparty/bootstrap.min.js" charset="utf-8"></script>
+    <script type="text/jsx">
+    var ToDoListBox = React.createClass({
+        getInitialState: function() {
+          return {data: [{id:"1",text:"sayHello"},{id:"2",text:"sayGoodBye"}]};
+        },
+        //应该将事件处理函数通过props传递给子组件
+        handleDelete:function(idToDel){
+            var dataNew=this.state.data.filter(function(i){
+                if(i.id==idToDel) return false;
+                else return true;
+            });
+            this.setState({data:dataNew});
+        },
+        handleAdd:function(newText){
+            if(newText=="") return;
+            var data=this.state.data.concat();//复制一个data数组
+            data[data.length]={id:data.length+1,text:newText};//插入新数据
+            this.setState({data:data});//更新state，不要直接修改this.state
+        },
+        render: function(){
+          return (
+              <div className="panel panel-default">
+                  <div className="panel-heading">"What do you want to do?"</div>
+                  <div className="panel-body">
+                      <AddBox addHandler={this.handleAdd}/>
+                      <TodoItems data={this.state.data} deleteHandler={this.handleDelete}/>
+                  </div>
+              </div>
+                 );
+        }
+    });
+    var AddBox=React.createClass({
+        handleAdd:function(e){
+            var $input=$(e.target).parent().prev()
+            var val=$input.val();//获取输入框中的文字
+            $input.val("");//清空
+            this.props.addHandler(val);//传递给父组件的处理函数
+        },
+        render:function(){
+            return (
+                <div className="input-group" style={{marginBottom:"10px"}}>
+                      <input type="text" className="form-control" placeholder="I want to.."></input>
+                      <span className="input-group-btn">
+                        <button className="btn btn-default" type="button" onClick={this.handleAdd}>Add!</button>
+                      </span>
+                </div>
+                );
+        }
+    });
+    var TodoItems=React.createClass({
+        render:function(){
+            var deleteHandler=this.props.deleteHandler;
+            var items=this.props.data.map(function(item){
+                return (
+                    <Item id={item.id} text={item.text} deleteHandler={deleteHandler}>
+                    </Item>
+                    );
+            });
+            return (
+                <ul className="list-group">
+                    {items}
+                </ul>
+                );
+        }
+    });
+    var Item=React.createClass({
+        handleDelete:function(){
+            var self=this;
+            $(React.findDOMNode(this.refs.item)).fadeOut(200,function(){
+                self.props.deleteHandler(self.props.id);//等动画完成后调用ToDoListBox的handleDelete函数，将id传递给它
+            });
+            //this.props.deleteHandler(this.props.id);//调用ToDoListBox的handleDelete函数，将id传递给它
+        },
+        render:function(){
+            return (
+                <li className="list-group-item" ref="item">
+                    {this.props.text}
+                    <button className="btn btn-warning btn-xs" type="button" onClick={this.handleDelete} style={{float:"right"}}>X</button>
+                </li>
+                );
+        }
+    });
+    React.render(
+      <ToDoListBox/>,
+      document.getElementById('todolist')
+    );
+    </script>
+</body>
+</html>
